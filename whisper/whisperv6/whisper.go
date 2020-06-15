@@ -606,6 +606,7 @@ func (whisper *Whisper) updateBloomFilter(f *Filter) {
 
 // GetFilter returns the filter by id.
 func (whisper *Whisper) GetFilter(id string) *Filter {
+	log.Info("requested filter id", id)
 	return whisper.filters.Get(id)
 }
 
@@ -657,6 +658,7 @@ func (whisper *Whisper) Stop() error {
 // connection is negotiated.
 func (whisper *Whisper) HandlePeer(peer *p2p.Peer, rw p2p.MsgReadWriter) error {
 	// Create the new peer and start tracking it
+	log.Info("newWhisperPeer")
 	whisperPeer := newPeer(whisper, peer, rw)
 
 	whisper.peerMu.Lock()
@@ -681,9 +683,13 @@ func (whisper *Whisper) HandlePeer(peer *p2p.Peer, rw p2p.MsgReadWriter) error {
 
 // runMessageLoop reads and processes inbound messages directly to merge into client-global state.
 func (whisper *Whisper) runMessageLoop(p *Peer, rw p2p.MsgReadWriter) error {
+	log.Info("startingRunMessageLoop")
+
 	for {
 		// fetch the next packet
 		packet, err := rw.ReadMsg()
+		log.Info("got whipser package")
+		log.Info(fmt.Sprintf("packet code %d", packet.Code))
 		if err != nil {
 			log.Info("message loop", "peer", p.peer.ID(), "err", err)
 			return err
@@ -699,6 +705,7 @@ func (whisper *Whisper) runMessageLoop(p *Peer, rw p2p.MsgReadWriter) error {
 			log.Warn("unxepected status message received", "peer", p.peer.ID())
 		case messagesCode:
 			// decode the contained envelopes
+			log.Info("got whipser message")
 			var envelopes []*Envelope
 			if err := packet.Decode(&envelopes); err != nil {
 				log.Warn("failed to decode envelopes, peer will be disconnected", "peer", p.peer.ID(), "err", err)

@@ -28,6 +28,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/crypto/ecies"
 	"github.com/ethereum/go-ethereum/rlp"
 )
@@ -209,6 +210,7 @@ func (e *Envelope) OpenSymmetric(key []byte) (msg *ReceivedMessage, err error) {
 
 // Open tries to decrypt an envelope, and populates the message fields in case of success.
 func (e *Envelope) Open(watcher *Filter) (msg *ReceivedMessage) {
+	log.Info("trying to decrypt envelope")
 	if watcher == nil {
 		return nil
 	}
@@ -219,11 +221,13 @@ func (e *Envelope) Open(watcher *Filter) (msg *ReceivedMessage) {
 	}
 
 	if watcher.expectsAsymmetricEncryption() {
+		log.Info("trying to decrypt envelope asymmetrically")
 		msg, _ = e.OpenAsymmetric(watcher.KeyAsym)
 		if msg != nil {
 			msg.Dst = &watcher.KeyAsym.PublicKey
 		}
 	} else if watcher.expectsSymmetricEncryption() {
+		log.Info("trying to decrypt envelope symmetrically")
 		msg, _ = e.OpenSymmetric(watcher.KeySym)
 		if msg != nil {
 			msg.SymKeyHash = crypto.Keccak256Hash(watcher.KeySym)

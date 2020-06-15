@@ -155,13 +155,16 @@ func (fs *Filters) Get(id string) *Filter {
 // NotifyWatchers notifies any filter that has declared interest
 // for the envelope's topic.
 func (fs *Filters) NotifyWatchers(env *Envelope, p2pMessage bool) {
+	log.Info("entered NotifyWatchers")
 	var msg *ReceivedMessage
 
 	fs.mutex.RLock()
 	defer fs.mutex.RUnlock()
 
 	candidates := fs.getWatchersByTopic(env.Topic)
+	log.Info("generated candidates for topic ", env.Topic, len(candidates))
 	for _, watcher := range candidates {
+		log.Info("checking whether message should be forwarded to", watcher.id)
 		if p2pMessage && !watcher.AllowP2P {
 			log.Trace(fmt.Sprintf("msg [%x], filter [%s]: p2p messages are not allowed", env.Hash(), watcher.id))
 			continue
